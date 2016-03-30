@@ -1,0 +1,24 @@
+packages:
+  - dataRetrieval
+  - dplyr
+  - lubridate
+
+sources:
+  - R/get_nwis_temps.R
+  - R/get_stream_ids.R
+  
+targets:
+  all:
+    depends: 
+     - data/temperature_streams/all_data.csv
+    #  - all_data
+      
+  nwis_ids:
+    command: get_stream_ids(min_years=30)
+  
+  all_data:
+    command: get_nwis_temps(nwis_ids)
+  
+  data/temperature_streams/all_data.csv:
+    command: write.csv(all_data, target_name, row.names=FALSE)
+
