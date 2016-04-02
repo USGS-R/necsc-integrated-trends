@@ -2,10 +2,17 @@ packages:
   - dataRetrieval
   - dplyr
   - lubridate
+  - lakeattributes
 
 sources:
   - R/get_nwis_temps.R
   - R/get_stream_ids.R
+  - R/sens_seasonal.R
+  - R/write_empirical_lake_wtemp.R
+  - R/calculate_lake_slopes.R
+  - R/build_lake_summary.R
+  - R/fetch_lake_metadata.R
+  
   
 targets:
   all:
@@ -16,9 +23,28 @@ targets:
   nwis_ids:
     command: get_stream_ids(min_years=30)
   
-  all_data:
+  all_stream_data:
     command: get_nwis_temps(nwis_ids)
   
   data/temperature_streams/all_data.csv:
-    command: write.csv(all_data, target_name, row.names=FALSE)
+    command: write.csv(all_stream_data, target_name, row.names=FALSE)
+  
+#  data/temperature_streams/metadata.csv:
+#    command: stream_metadata(all_stream_data)
 
+####Now lake stuff
+  data/temperature_lakes/lake_obs.csv:
+    command: write_wtemp(target_name)
+  
+  data/temperature_lakes/slope_population.Rdata:
+    command: calculate_lake_slopes('data/temperature_lakes/lake_obs.csv')
+  
+  data/temperature_lakes/lake_metadata.csv:
+    command: fetch_lake_metadata('data/temperature_lakes/slope_population.Rdata')
+
+  output/lake_empirical_summary.html:
+    command: build_lake_summary()
+    depends: 
+      - data/temperature_lakes/slope_population.Rdata
+  
+  
