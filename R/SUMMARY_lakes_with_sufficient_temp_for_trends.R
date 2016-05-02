@@ -3,6 +3,7 @@ library(lakeattributes)
 library(dplyr)
 library(plyr)
 
+data(wtemp)
 wtemp$month = as.POSIXlt(wtemp$date)$mon + 1
 
 events = unique(wtemp[,c('site_id', 'date')])

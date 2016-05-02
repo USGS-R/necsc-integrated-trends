@@ -6,6 +6,7 @@ calculate_lake_slopes = function(infile){
   
   lake_d$yday = yday(lake_d$date)
   lake_d$month = month(lake_d$date)
+  lake_d$week  = week(lake_d$date)
   lake_d = na.omit(lake_d)
   
   #lmer(wtemp~year + (1|site_id) + (1|depth) + (1|yday), data = lake_d)

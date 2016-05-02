@@ -5,18 +5,135 @@ date: "April 1, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+### Summary of empirical lake temperature trends.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
-summary(cars)
-```
-
-You can also embed plots, for example:
+---
 
 ```{r, echo=FALSE}
-plot(cars)
+
+if(!exists('lake_slopes')){
+  load('../data/temperature_lakes/slope_population.Rdata')
+}
+
+metadata = read.csv('../data/temperature_lakes/lake_metadata.csv', as.is=TRUE)
+
+meta_match_i = match(lake_slopes$site_id, metadata$site_id)
+lake_slopes$area_m2 = metadata$area_m2[meta_match_i]
+lake_slopes$area_log10 = floor(log10(lake_slopes$area_m2))
+lake_slopes$zmax    = metadata$zmax[meta_match_i]
+lake_slopes$rel_depth = lake_slopes$depth/lake_slopes$zmax
+lake_slopes$rel_depth_10 = floor(lake_slopes$rel_depth*10)/10
+
+lake_slopes = lake_slopes[lake_slopes$rel_depth <= 1, ]
+
+  
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+<style type="text/css">
+.table {
+    width: 60%;
+}
+</style>
+
+
+| Metric | Value | 
+|--------|-------|
+|Number of Lakes| `r length(unique(lake_slopes$site_id))`|
+|Overall median trend| `r median(lake_slopes$slopes, na.rm=TRUE)` C/yr|
+|Overall near-surface trend (rel_depth <= 0.2)| `r median(subset(lake_slopes, rel_depth <=0.2)$slopes)` C/yr|
+|Overall near-bottom trend (rel_depth >= 0.8)| `r median(subset(lake_slopes, rel_depth >=0.8)$slopes)` C/yr|
+
+
+Depth | Big big lakes (>1 km^2) | Large Lakes (>0.5 km^2) | Small Lakes (<0.5 km^2)
+------|-------------|------------| -----------
+Shallow (rel_depth < 0.5) | `r median(subset(lake_slopes, rel_depth < 0.5 & area_m2 > 1e6)$slopes)` | `r median(subset(lake_slopes, rel_depth < 0.5 & area_m2 > 0.5e6)$slopes)` | `r median(subset(lake_slopes, rel_depth < 0.5 & area_m2 < 0.5e6)$slopes)`
+Deep (rel_depth > 0.5) | `r median(subset(lake_slopes, rel_depth > 0.5 & area_m2 > 1e6)$slopes)` | `r median(subset(lake_slopes, rel_depth > 0.5 & area_m2 > 0.5e6)$slopes)` | `r median(subset(lake_slopes, rel_depth > 0.5 & area_m2 < 0.5e6)$slopes)`
+All Lakes | `r median(subset(lake_slopes, rel_depth < 0.5)$slopes)` | `r median(subset(lake_slopes, rel_depth < 0.5)$slopes)` | `r median(subset(lake_slopes, rel_depth < 0.5)$slopes)`
+
+
+
+
+### General lake attributes
+
+---
+
+```{r, echo=FALSE, warning=FALSE}
+# library(leaflet)
+# 
+# color.gradient <- function(x, colors=c("blue", 'white',"red"), colsteps=100) {
+#   x[is.na(x)] = median(x, na.rm=TRUE)
+#   return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
+# }
+# 
+# metadata$secchi[metadata$secchi<=0] = 0.1
+# 
+# m = leaflet() %>% addTiles() %>% 
+#   addCircleMarkers(lng=metadata$lon, lat=metadata$lat, fillOpacity=1,
+#                   fillColor=color.gradient(log10(metadata$secchi), colors=c('blue', 'brown')), radius=4, stroke=FALSE, weight=1)#,
+#                    #popup=paste("ID:", good_slopes$site_id, '<br>Slope:', good_slopes$V1))
+# 
+# m
+
+hist(subset(metadata, site_id %in% unique(lake_slopes$site_id))$secchi, breaks=100, xlim=c(0,5), xlab='Avg Secchi by lake (m)', main='Secchi')
+
+hist(log10(subset(metadata, site_id %in% unique(lake_slopes$site_id))$area_m2), breaks=100, xlab='Lake Area as log10(area m^2)', main='Lake Area')
+
+
+```
+
+
+### Trends across important gradients
+
+---
+
+```{r, echo=FALSE}
+
+
+#ddply(lake_slopes, 'rel_depth_10', function(df){
+#  median(df$slopes)
+#})
+
+boxplot(slopes~rel_depth_10, lake_slopes, ylim=c(-0.2, 0.2), xlab='Relative Depth (depth/zmax)', ylab='Temp Trend (C/yr)')
+abline(h=0)
+
+boxplot(slopes~area_log10, lake_slopes, ylim=c(-0.2, 0.2), xlab='Log10(Area) (log10(m^2))', ylab='Temp Trend (C/yr)')
+abline(h=0)
+
+```
+
+### Trends split by lake size
+
+---
+
+```{r, echo=FALSE}
+
+boxplot(slopes~rel_depth_10, subset(lake_slopes, area_m2 > 1e6), ylim=c(-0.2, 0.2), 
+        xlab='Relative Depth (depth/zmax)', ylab='Temp Trend (C/yr)', main='Large Lakes > 1 km^2')
+abline(h=0)
+
+boxplot(slopes~rel_depth_10, subset(lake_slopes, area_m2 < 1e6), ylim=c(-0.2, 0.2), 
+        xlab='Relative Depth (depth/zmax)', ylab='Temp Trend (C/yr)', main='Small Lakes < 1 km^2')
+abline(h=0)
+
+
+```
+
+All fairly similar to [Winslow et al. 2015](http://onlinelibrary.wiley.com/doi/10.1002/2014GL062325/full).
+Small lakes have muted trends in bottom waters. Surface waters are fairly consistent across large 
+and small lakes. 
+
+
+### Temporal coverage of dataset
+
+```{r, echo=FALSE}
+
+rm(list=ls())
+
+wtemp = read.csv('../data/temperature_lakes/lake_obs.csv', as.is=TRUE)
+
+hist(wtemp$year, xlab='Year', ylab='Number of Observations', main="")
+
+```
+
+
+

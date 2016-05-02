@@ -2,7 +2,8 @@
 library(lme4)
 library(dplyr)
 
-stream_d = read.csv('data/temperature_streams/all_data.csv', as.is=TRUE)
+stream_d = read.csv('data/temperature_streams/', as.is=TRUE)
+load('data/temperature_streams/all_data.Rdata')
 
 
 
