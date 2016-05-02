@@ -3,6 +3,8 @@ packages:
   - dplyr
   - lubridate
   - lakeattributes
+  - futile.logger
+  - util
 
 sources:
   - R/get_nwis_temps.R
@@ -18,6 +20,7 @@ targets:
   all:
     depends: 
      - data/temperature_streams/all_data.csv
+     - output/lake_empirical_summary.html
     #  - all_data
       
   nwis_ids:
@@ -28,6 +31,9 @@ targets:
   
   data/temperature_streams/all_data.csv:
     command: write.csv(all_stream_data, target_name, row.names=FALSE)
+  
+  data/temperature_streams/wtr_airt_matched.csv:
+    command: stream_get_airt('data/temperature_streams/all_data.csv', target_name)
   
 #  data/temperature_streams/metadata.csv:
 #    command: stream_metadata(all_stream_data)
@@ -43,7 +49,7 @@ targets:
     command: fetch_lake_metadata('data/temperature_lakes/slope_population.Rdata')
 
   output/lake_empirical_summary.html:
-    command: build_lake_summary()
+    command: build_lake_summary('R/lake_empirical_summary.Rmd', target_name)
     depends: 
       - data/temperature_lakes/slope_population.Rdata
   
