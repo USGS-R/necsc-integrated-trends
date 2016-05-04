@@ -4,8 +4,8 @@ get_prism_temps = function(ids, lats, lons){
   
   fabric <- webdata()
   
-  #url(fabric) <- 'http://cida.usgs.gov/thredds/dodsC/prism'
-  url(fabric) <- 'http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/cru/hadcrut3/var/var.time.stat.nc'
+  url(fabric) <- 'http://cida.usgs.gov/thredds/dodsC/prism'
+  #url(fabric) <- 'http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/cru/hadcrut3/var/var.time.stat.nc'
   variables(fabric) <- 'tmx'
   query(fabric, 'times')
   
