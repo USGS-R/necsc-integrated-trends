@@ -4,7 +4,7 @@ packages:
   - lubridate
   - lakeattributes
   - futile.logger
-  - util
+  - utils
 
 sources:
   - R/get_nwis_temps.R
@@ -24,7 +24,7 @@ targets:
     #  - all_data
       
   nwis_ids:
-    command: get_stream_ids(min_years=30)
+    command: get_stream_ids(min_years=25)
   
   all_stream_data:
     command: get_nwis_temps(nwis_ids)
