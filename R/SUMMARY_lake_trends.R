@@ -7,14 +7,23 @@ library(lubridate)
 library(leaflet)
 source('R/sens_seasonal.R')
 
+data(wtemp)
 lake_d = wtemp
 lake_d$yday = yday(lake_d$date)
+lake_d$fdepth = floor(lake_d$depth)
+lake_d$week = week(lake_d$date)
 lake_d$month = month(lake_d$date)
 lake_d = na.omit(lake_d)
 
 #lmer(wtemp~year + (1|site_id) + (1|depth) + (1|yday), data = lake_d)
+week_avg = ddply(lake_d, c('year', 'week', 'site_id', 'fdepth'), function(df){median(df$wtemp, na.rm=TRUE)})
 
-lake_slopes = sens_seasonal_site(lake_d$year, lake_d$wtemp, lake_d$month, paste0(lake_d$site_id, ":", lake_d$depth))
+site_week_summary = ddply(week_avg, c('week', 'site_id'), function(df){length(unique(df$year))})
+tokeep = subset(site_week_summary, V1 > 2)
+
+totrend = merge(week_avg, tokeep[,c('week', 'site_id')], all.y=TRUE)
+
+lake_slopes = sens_seasonal_site(totrend$year, totrend$V1, totrend$week, paste0(totrend$site_id, ":", totrend$fdepth))
 
 rm(lake_d)
 

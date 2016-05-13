@@ -38,12 +38,23 @@ id_lookup = unique(data.frame(id_num = as.numeric(site_conv), id_name = as.chara
 temp$numer_id = as.numeric(site_conv)
 
 
-all_slopes = sens_seasonal_site(times=temp$year, data=temp$ResultMeasureValue, season_i=temp$week, sites_i=temp$numer_id)
+site_week_summary = ddply(temp, c('week', 'MonitoringLocationIdentifier'), function(df){length(unique(df$year))})
+
+tokeep = subset(dplyr::arrange(site_week_summary, desc(V1)), V1 > 2)
+
+
+long_sites = merge(temp, tokeep[,c('week', 'MonitoringLocationIdentifier')], all.y=TRUE)
+
+sites_week_avg = ddply(long_sites, c('year', 'week', 'MonitoringLocationIdentifier'), function(df){
+  median(df$ResultMeasureValue, na.rm=TRUE)
+})
+
+all_slopes = sens_seasonal_site(times=sites_week_avg$year, data=sites_week_avg$V1, season_i=sites_week_avg$week, sites_i=sites_week_avg$MonitoringLocationIdentifier)
 
 median(all_slopes$slopes, na.rm=TRUE)
-
-
-
+hist(all_slopes$slopes, breaks=200)
+boxplot(slopes~season_i, all_slopes, ylim=c(-0.2,0.2))
+abline(h=0)
 
 
 
