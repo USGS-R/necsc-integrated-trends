@@ -46,8 +46,9 @@ sens_seasonal_site = function(times, data, season_i, sites_i){
     dts    = abs(times[perm.i[1,]] - times[perm.i[2,]])
     
     slopes = (data[perm.i[1,]]-data[perm.i[2,]])/(times[perm.i[1,]] - times[perm.i[2,]])
+    avgvals = (data[perm.i[1,]]+data[perm.i[2,]])/2
     
-    return(data.frame(slopes, start=starts, end=ends, dt=dts, n.obs=length(times)))
+    return(data.frame(slopes, start=starts, end=ends, dt=dts, n.obs=length(times), avgvals))
     
   })
   

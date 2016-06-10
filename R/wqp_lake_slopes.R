@@ -1,6 +1,6 @@
 #calculate_lake_slopes
 
-calculate_lake_slopes = function(infile){
+wqp_lake_slopes = function(infile){
   
   lake_d = read.csv(infile)
   

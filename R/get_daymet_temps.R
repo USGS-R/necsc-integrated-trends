@@ -1,15 +1,16 @@
 #get_prism_temps(lats, lons)
 library(geoknife)
-get_prism_temps = function(ids, lats, lons){
+#options c('tmax', 'tmin', 'tmean')
+get_daymet_temps = function(ids, lats, lons, var='tmax'){
   
   fabric <- webdata()
   
-  url(fabric) <- 'http://cida.usgs.gov/thredds/dodsC/prism'
+  url(fabric) <- 'http://thredds.daac.ornl.gov/thredds/dodsC/daymet-agg/daymet-agg.ncml'
   #url(fabric) <- 'http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/cru/hadcrut3/var/var.time.stat.nc'
-  variables(fabric) <- 'tmx'
+  variables(fabric) <- var
   query(fabric, 'times')
   
-  times(fabric) <- as.POSIXct(c('1950-01-01', '2016-01-01'))
+  times(fabric) <- as.POSIXct(c('1980-01-01', '2016-01-01'))
   
   
   locations = data.frame(row.names=c('longitude', 'latitude'))

@@ -1,3 +1,5 @@
+#ok, trying to organize what this is creating here. 
+
 packages:
   - dataRetrieval
   - dplyr
@@ -5,6 +7,9 @@ packages:
   - lakeattributes
   - futile.logger
   - utils
+  - laketemps
+  - zyp
+  - geoknife
 
 sources:
   - R/get_nwis_temps.R
@@ -14,14 +19,19 @@ sources:
   - R/calculate_lake_slopes.R
   - R/build_lake_summary.R
   - R/fetch_lake_metadata.R
+  - R/nwis_save_data.R
+  - R/get_prism_temps.R
+  - R/nwis_gltc_like_trends.R
+  - R/gltc_trend_calc.R
   
   
 targets:
   all:
     depends: 
-     - data/temperature_streams/all_data.csv
-     - output/lake_empirical_summary.html
-    #  - all_data
+     - data/temperature_streams/long_nwis_data.Rdata  ## GOOD, > 25 year long NWIS DATA
+     - data/trends/streams_gltc_jas.csv               ## nwis GLTC-like JAS trends
+     - data/trends/lakes_gltc_jas.csv                 ## JAS trends from GLTC matched with PRISM airT
+     
       
   nwis_ids:
     command: get_stream_ids(min_years=25)
@@ -29,14 +39,17 @@ targets:
   all_stream_data:
     command: get_nwis_temps(nwis_ids)
   
-  data/temperature_streams/all_data.csv:
-    command: write.csv(all_stream_data, target_name, row.names=FALSE)
+  data/temperature_streams/long_nwis_data.Rdata:
+    command: nwis_save_data(all_stream_data, target_name)
   
-  data/temperature_streams/wtr_airt_matched.csv:
-    command: stream_get_airt('data/temperature_streams/all_data.csv', target_name)
+  data/trends/streams_gltc_jas.csv:
+    command: nwis_gltc_like_trends(all_stream_data, target_name)
   
 #  data/temperature_streams/metadata.csv:
 #    command: stream_metadata(all_stream_data)
+
+  data/trends/lakes_gltc_jas.csv:
+    command: gltc_trend_calc(target_name)
 
 ####Now lake stuff
   data/temperature_lakes/lake_obs.csv:
