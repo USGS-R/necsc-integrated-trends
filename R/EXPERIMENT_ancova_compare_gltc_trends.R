@@ -1,6 +1,7 @@
 library(laketemps)
 library(randomForest)
 library(zyp)
+library(lme4)
 
 all_lakes = laketemps::get_lake_names()
 
@@ -17,9 +18,28 @@ for(i in 1:length(all_wtr)){
 
 wtr_long = do.call(rbind, all_wtr)
 
+
+### Lets try some stats
+
 #wtr_long$lakeid = as.factor(wtr_long$lakeid)
 #contrasts(wtr_long$lakeid) = contr.helmert(length(unique(wtr_long$lakeid)))
 
+null <- lm(Lake.Temp.Summer.InSitu ~ year, data=wtr_long) # where all lakes are included and nothing is grouped 
+AIC(null)
+
+mod1 <- lmer(Lake.Temp.Summer.InSitu ~ year + (1|lakeid), data = wtr_long)  # contains a random intercept for each lake
+AIC(mod1)
+
+#??
+mod2 <- lmer(Lake.Temp.Summer.InSitu ~ year + (1 + year|lakeid), data=wtr_long) # this allows the slope and intercept to vary for each lake
+AIC(mod2)
+
+
+
+mod3 <- lmer(JAS ~ time + (1+ time|group/lake), data = data) 
+# tells R to fit a model with varying slope and varying intercepts for groups 
+# and lakes nested within groups, and allows the slope of the time to vary by group
+# http://jaredknowles.com/journal/2013/11/25/getting-started-with-mixed-effect-models-in-r
 
 
 #intercepts are definitely different. Trends? (once intercepts accounted for) Not so much

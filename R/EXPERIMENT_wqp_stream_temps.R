@@ -6,6 +6,8 @@ source('R/sens_seasonal.R')
 temp = readRDS('data/temperature_streams/stream_temperature_wqp.rds')
 meta = read.table('data/temperature_streams/metadata_extended.tsv', sep='\t', header=TRUE, as.is=TRUE, comment.char = '', quote='')
 
+meta$X.MonitoringLocationIdentifier. = gsub('\"', "", meta$X.MonitoringLocationIdentifier.)
+
 temp = temp[, c('OrganizationIdentifier', 'ActivityStartDateTime', 'ResultMeasure.MeasureUnitCode', 'ActivityMediaSubdivisionName',  'CharacteristicName', 'ResultMeasureValue', 'MonitoringLocationIdentifier')]
 gc()
 
@@ -46,6 +48,8 @@ tokeep = subset(dplyr::arrange(site_week_summary, desc(V1)), V1 > 2)
 
 long_sites = merge(temp, tokeep[,c('week', 'MonitoringLocationIdentifier')], all.y=TRUE)
 
+long_sites = subset(long_sites, ResultMeasureValue > 0)
+
 sites_week_avg = ddply(long_sites, c('year', 'week', 'MonitoringLocationIdentifier'), function(df){
   mean(df$ResultMeasureValue, na.rm=TRUE)
 })
@@ -61,8 +65,9 @@ abline(h=0)
 
 ##experimental stuff
 
-slope_so = merge(meta, all_slopes, by.y='sites_i', by.x='MonitoringLocationIdentifier')
-boxplot(slopes~X.StreamOrde., slope_so, ylim=c(-0.2,0.2))
+slope_so = merge(meta, all_slopes, by.y='sites_i', by.x='X.MonitoringLocationIdentifier.')
+boxplot(slopes~X.StreamOrde., slope_so, ylim=c(-0.2,0.2), xlab='Stream Order', ylab='Trend')
+abline(h=0)
 boxplot(slopes~floor(X.QA_01./100), slope_so, ylim=c(-0.2,0.2))
 
 hist(slope_so$slopes, breaks=200, xlim=c(-5,5))
