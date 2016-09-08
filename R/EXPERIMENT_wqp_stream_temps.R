@@ -40,7 +40,6 @@ id_lookup = unique(data.frame(id_num = as.numeric(site_conv), id_name = as.chara
 
 temp$numer_id = as.numeric(site_conv)
 
-
 site_week_summary = ddply(temp, c('week', 'MonitoringLocationIdentifier'), function(df){length(unique(df$year))})
 
 tokeep = subset(dplyr::arrange(site_week_summary, desc(V1)), V1 > 2)
