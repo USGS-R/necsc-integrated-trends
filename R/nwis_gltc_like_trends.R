@@ -1,11 +1,3 @@
-library(reshape2)
-library(plyr)
-library(lubridate)
-library(zyp)
-library(dataRetrieval)
-library(lme4)
-library(geoknife)
-source('R/get_prism_temps.R')
 
 nwis_gltc_like_trends = function(nwis_temps, fout){
 #nwis temps

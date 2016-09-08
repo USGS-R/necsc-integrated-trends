@@ -3,6 +3,8 @@
 packages:
   - dataRetrieval
   - dplyr
+  - plyr
+  - reshape2
   - lubridate
   - lakeattributes
   - futile.logger
@@ -10,13 +12,14 @@ packages:
   - laketemps
   - zyp
   - geoknife
+  - lme4
 
 sources:
   - R/get_nwis_temps.R
   - R/get_stream_ids.R
   - R/sens_seasonal.R
   - R/write_empirical_lake_wtemp.R
-  - R/calculate_lake_slopes.R
+  - R/wqp_lake_slopes.R
   - R/build_lake_summary.R
   - R/fetch_lake_metadata.R
   - R/nwis_save_data.R
