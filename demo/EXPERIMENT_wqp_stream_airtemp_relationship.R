@@ -3,7 +3,8 @@ library(lubridate)
 library(lme4)
 library(reshape2)
 source('R/sens_seasonal.R')
-source('R/get_prism_temps.R')
+source('R/get_daymet_temps.R')
+source('R/pair_interannual_variability.R')
 
 temp = readRDS('data/temperature_streams/stream_temperature_wqp.rds')
 meta = read.table('data/temperature_streams/metadata_extended.tsv', sep='\t', header=TRUE, as.is=TRUE, comment.char = '', quote='')
@@ -56,15 +57,17 @@ sites_month_avg = ddply(long_sites, c('year', 'month', 'MonitoringLocationIdenti
 
 sub_meta = subset(meta, X.MonitoringLocationIdentifier. %in% tokeep$MonitoringLocationIdentifier)
 
-site_airt = get_prism_temps(sub_meta$X.MonitoringLocationIdentifier., sub_meta$X.LatitudeMeasure., sub_meta$X.LongitudeMeasure.)
-
-airt_long = melt(site_airt, id.vars = 'DateTime', variable.name = 'MonitoringLocationIdentifier', value.name = 'airtemp')
-airt_long$month = month(airt_long$DateTime)
-airt_long$year  = year(airt_long$DateTime)
-air_wtr_month$airtemp = as.numeric(air_wtr_month$airtemp)
 ##get air temperature data
 
+airt_long = get_daymet_temps(sub_meta$X.MonitoringLocationIdentifier., sub_meta$X.LatitudeMeasure., sub_meta$X.LongitudeMeasure.)
+
+airt_long$temp = (airt_long$tmax..deg.c. + airt_long$tmin..deg.c.)/2
+airt_long$DateTime = ISOdate(airt_long$year, 1, 1, 0, 0, 0) + as.difftime(airt_long$yday-1, units='days')
+airt_long$month = month(airt_long$DateTime)
+airt_long$year  = year(airt_long$DateTime)
+
 air_wtr_month = merge(subset(sites_month_avg, V1 > 0), airt_long, by=c('MonitoringLocationIdentifier', 'month', 'year'))
+air_wtr_month$airtemp = as.numeric(air_wtr_month$airtemp)
 
 wtr_slopes = sens_seasonal_site(times=air_wtr_month$year, data=air_wtr_month$V1, season_i=air_wtr_month$month, sites_i=air_wtr_month$MonitoringLocationIdentifier)
 air_slopes = sens_seasonal_site(times=air_wtr_month$year, data=air_wtr_month$airtemp, season_i=air_wtr_month$month, sites_i=air_wtr_month$MonitoringLocationIdentifier)

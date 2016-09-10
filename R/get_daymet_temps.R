@@ -1,27 +1,31 @@
 #get_prism_temps(lats, lons)
-library(geoknife)
+library(httr)
 #options c('tmax', 'tmin', 'tmean')
-get_daymet_temps = function(ids, lats, lons, var='tmax'){
+get_daymet_temps = function(ids, lats, lons){
   
-  fabric <- webdata()
-  
-  url(fabric) <- 'http://thredds.daac.ornl.gov/thredds/dodsC/daymet-agg/daymet-agg.ncml'
-  #url(fabric) <- 'http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/cru/hadcrut3/var/var.time.stat.nc'
-  variables(fabric) <- var
-  query(fabric, 'times')
-  
-  times(fabric) <- as.POSIXct(c('1980-01-01', '2016-01-01'))
-  
-  
-  locations = data.frame(row.names=c('longitude', 'latitude'))
-  
-  for(i in 1:length(ids)){
-    locations[c('longitude', 'latitude'),ids[i]] = c(lons[i], lats[i])
+  all_data = list()
+  pb = txtProgressBar(min=0, max=length(lats))
+  for(i in 1:length(lats)){
+    
+    year_range = paste(seq(1980, 2015, by = 1), collapse = ",")
+    download_string = sprintf("https://daymet.ornl.gov/data/send/saveData?lat=%s&lon=%s&measuredParams=tmax,tmin,dayl,prcp,srad,swe,vp&year=%s", 
+                            lats[i], lons[i], year_range)
+    
+    tryCatch({
+      r = RETRY('GET', download_string)
+      data_as_csv = content(r, 'text', encoding = 'UTF-8')
+      pseudo_file = textConnection(data_as_csv)
+      
+      all_data[[i]] = read.csv(pseudo_file, header=TRUE, skip=7, as.is=TRUE)
+      close(pseudo_file)
+      all_data[[i]]$site_id = ids[i]
+      
+    }, error=function(e){
+      print(e)
+    })
+    
+    setTxtProgressBar(pb, i)
   }
   
-  stencil = simplegeom(locations)
-  
-  job = geoknife(stencil, fabric, wait = TRUE)
-  
-  result(job)
+  return(do.call(rbind, all_data))
 }
