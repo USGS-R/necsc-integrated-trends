@@ -3,7 +3,7 @@
 
 write_wtemp = function(fout){
   
-  
-  write.csv(lakeattributes::wtemp, fout, row.names=FALSE)
+  data(wtemp)
+  write.csv(wtemp, fout, row.names=FALSE)
 
 }

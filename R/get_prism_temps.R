@@ -7,7 +7,7 @@ get_prism_temps = function(ids, lats, lons){
   url(fabric) <- 'http://cida.usgs.gov/thredds/dodsC/prism'
   #url(fabric) <- 'http://www.esrl.noaa.gov/psd/thredds/dodsC/Datasets/cru/hadcrut3/var/var.time.stat.nc'
   variables(fabric) <- 'tmx'
-  query(fabric, 'times')
+  #query(fabric, 'times')
   
   times(fabric) <- as.POSIXct(c('1950-01-01', '2016-01-01'))
   
