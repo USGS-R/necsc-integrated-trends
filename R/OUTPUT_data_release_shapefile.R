@@ -5,7 +5,7 @@ library(lakeattributes)
 source(system.file('demo/common_running_functions.R', package='mda.lakes'))
 
 
-modrun = read.table('data/necsc_model_output/ACCESS_core_metrics.tsv', sep='\t', header=TRUE, as.is=TRUE)
+modrun = read.table('data/necsc_model_output/ACCESS_thermal_metrics.tsv', sep='\t', header=TRUE, as.is=TRUE)
 
 nhd_lakes = readOGR('data/necsc_nhd', layer='NHDWaterbody')
 
