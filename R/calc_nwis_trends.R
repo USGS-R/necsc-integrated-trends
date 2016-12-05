@@ -4,7 +4,7 @@ library(plyr)
 library(lubridate)
 library(zyp)
 
-load('data/temperature_streams/all_data.Rdata')
+load('data/temperature_streams/long_nwis_data.Rdata')
 
 nwis_temps$year = year(nwis_temps$Date)
 nwis_temps$month = month(nwis_temps$Date)
@@ -15,13 +15,24 @@ jas_avgs = ddply(nwis_temps, c('site_no', 'year'), function(df){
   
 })
 
-site_trends = ddply(jas_avgs, c('site_no'), function(df){
-  if(nrow(df) < 10){
+ann_avgs = ddply(nwis_temps,  c('site_no', 'year'), function(df){
+  mean(df$X_00010_00003, na.rm=TRUE)
+})
+
+jas_trends = ddply(jas_avgs, c('site_no'), function(df){
+  if(nrow(df) < 25){
     return(data.frame())
   }
   data.frame(linear=lm(V1~year, df)$coeff[2], sen=zyp.sen(V1~year, df)$coeff[2], dt=diff(range(df$year)))
 })
 
+
+ann_trends = ddply(ann_avgs, c('site_no'), function(df){
+  if(nrow(df) < 25){
+    return(data.frame())
+  }
+  data.frame(linear=lm(V1~year, df)$coeff[2], sen=zyp.sen(V1~year, df)$coeff[2], dt=diff(range(df$year)))
+})
 
 
 

@@ -26,7 +26,7 @@ basins = merge(basins, read.table('data/basinsII/conterm_lc06_basin.txt', sep=',
 basins$X = NULL
 
 #nwis temps
-load('data/temperature_streams/all_data.Rdata')
+load('data/temperature_streams/long_nwis_data.Rdata')
 
 nwis_temps$year = year(nwis_temps$Date)
 nwis_temps$month = month(nwis_temps$Date)
